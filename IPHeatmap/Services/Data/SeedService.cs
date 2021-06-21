@@ -13,7 +13,7 @@ namespace IPHeatmap.Services.Data
 {
     public class SeedService
     {
-        private static readonly string SeedZip = @"./Data/Seed/GeoLite2-City-CSV_20190618.zip";
+        private static readonly string SeedZip = @"./Data/Seed/GeoLite2-City-Blocks-IPv4.zip";
         private static readonly string SeedUnzipDirectory = @"./Data/Seed/";
         private static readonly string SeedCSV = @"./Data/Seed/GeoLite2-City-Blocks-IPv4.csv";
 

@@ -38,15 +38,25 @@ namespace IPHeatmap.Data
                 optionsBuilder.UseSqlite(configuration.GetConnectionString("SqliteConnection"));
             }
 
-            /*
+            
             optionsBuilder.EnableSensitiveDataLogging();
             optionsBuilder.UseLoggerFactory(MyLoggerFactory);
-            */
+            
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<IPAddress>().ToTable("IPAddress");
+            modelBuilder.Entity<IPAddress>()
+                .ToTable("IPAddress");
+
+            /* 
+             * Due to limitations with Sqlite not supporting decimal values, we must convert these to double.
+             * This will allow us to do our bounding box comparison within linq/queries 
+             */
+            modelBuilder.Entity<IPAddress>()
+                .Property(e => e.Latitude).HasConversion<double>();
+            modelBuilder.Entity<IPAddress>()
+                .Property(e => e.Longitude).HasConversion<double>();
         }
     }
 }
