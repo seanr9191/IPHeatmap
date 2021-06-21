@@ -7,8 +7,9 @@
 *.userosscache
 *.sln.docstates
 
-#Seed Data
+#Seed Data & Database
 GeoLite2-City-Blocks-IPv4.csv
+database.db
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

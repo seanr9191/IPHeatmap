@@ -1,10 +1,15 @@
+using IPHeatmap.Data;
+using IPHeatmap.Services.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace IPHeatmap
 {
@@ -28,10 +33,13 @@ namespace IPHeatmap
             {
                 configuration.RootPath = "ClientApp/build";
             });
+
+            services.AddDbContext<IPContext>
+                (x => x.UseSqlite(Configuration.GetConnectionString("SqliteConnection")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
             if (env.IsDevelopment())
             {
@@ -66,6 +74,24 @@ namespace IPHeatmap
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
+
+            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            var context = serviceScope.ServiceProvider.GetRequiredService<IPContext>();
+            context.Database.EnsureCreated();
+
+            int loadedIPCount = await context.IPAddresses.AsQueryable().CountAsync();
+            if (loadedIPCount == 0)
+            {
+                bool seeded = await new SeedService(logger).SeedDatabase();
+                if (!seeded)
+                {
+                    logger.LogError("The database was not seeded. There may be some unexpected behaviour.");
+                } else
+                {
+                    loadedIPCount = await context.IPAddresses.AsQueryable().CountAsync();
+                    logger.LogInformation("The database was seeded with " + loadedIPCount + " IPv4 Addresses.");
+                }
+            }
         }
     }
 }
