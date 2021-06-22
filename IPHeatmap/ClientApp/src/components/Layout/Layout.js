@@ -8,7 +8,7 @@ const Layout = (props) => {
     return (
         <div>
             <NavMenu />
-            <Container>
+            <Container style={{ width: '100%', height: '90vh' }}>
                 {props.children}
             </Container>
         </div>

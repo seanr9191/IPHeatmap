@@ -1,5 +1,6 @@
 ﻿using IPHeatmap.Data;
 using IPHeatmap.Data.Models;
+using IPHeatmap.Data.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,7 @@ namespace IPHeatmap.Controllers
          * The default page size is 1000.
          * The default page is 1.
          */
-        public async Task<List<IPAddress>> GetIPAddresses(
+        public async Task<List<HeatMapIP>> GetIPAddresses(
             int? page, 
             int? pageSize, 
             decimal? lowerLeftLat, 
@@ -47,8 +48,15 @@ namespace IPHeatmap.Controllers
 
             //Initialize the query
             using var context = new IPContext();
-            IQueryable<IPAddress> query = context.IPAddresses.AsQueryable()
-                .OrderBy(ip => ip.ID);
+            IQueryable<HeatMapIP> query = context.IPAddresses.AsQueryable()
+                .OrderBy(ip => ip.ID)
+                .GroupBy(ip => new { ip.Latitude, ip.Longitude })
+                .Select(ipGroup => new HeatMapIP
+                {
+                    Latitude = ipGroup.Key.Latitude,
+                    Longitude = ipGroup.Key.Longitude,
+                    Count = ipGroup.Count()
+                });
                 
             //Bound the results if applicable
             if (lowerLeftLat != null &&
